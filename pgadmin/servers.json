@@ -1,0 +1,14 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "AppCal Database",
+      "Group": "Servers",
+      "Host": "postgres_service",
+      "Port": 5432,
+      "MaintenanceDB": "appcal_db",
+      "Username": "database_user",
+      "Password": "database_password",
+      "SSLMode": "prefer"
+    }
+  }
+}

@@ -1,0 +1,51 @@
+# docker-compose.yml
+version: "3.9"
+
+volumes:
+  appcal_postgres_data:
+    name: appcal_postgres_data
+  appcal_pgadmin_data:
+    name: appcal_pgadmin_data
+
+networks:
+  appcal_network:
+    name: appcal_network
+    driver: bridge
+
+services:
+  postgres_service:
+    image: postgres:latest
+    container_name: appcal_postgres_container
+    restart: always
+    environment:
+      POSTGRES_USER: database_user
+      POSTGRES_PASSWORD: database_password
+      POSTGRES_DB: appcal_db
+    volumes:
+      - appcal_postgres_data:/var/lib/postgresql
+      - ./postgres/db-init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - appcal_network
+    ports:
+      - "5432:5432"
+
+
+  pgadmin_service:
+    image: dpage/pgadmin4:latest
+    container_name: appcal_pgadmin_container
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+    volumes:
+      - appcal_pgadmin_data:/var/lib/pgadmin
+      - ./pgadmin/servers.json:/pgadmin4/servers.json:ro
+    networks:
+      - appcal_network
+    ports:
+      - "8080:80"
+    depends_on:
+      - postgres_service
+
