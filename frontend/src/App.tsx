@@ -1,35 +1,32 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import "./App.css";
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <main
+      style={{
+        width: "95vw",
+        height: "95vh",
+        margin: 0,
+        padding: 0,
+        display: "flex",
+        flexDirection: "column",
+        backgroundColor: "lightskyblue",
+      }}
+    >
+      <div style={{ flex: 1, backgroundColor: "lightcoral" }}>
+        <h1 style={{ textAlign: "center", color: "white" }}>Section 1</h1>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
+      <div style={{ flex: 1, backgroundColor: "lightblue" }}>
+        <h1 style={{ textAlign: "center", color: "white" }}>Section 2</h1>
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+      <div style={{ flex: 1, backgroundColor: "lightgreen" }}>
+        <h1 style={{ textAlign: "center", color: "white" }}>Section 3</h1>
+      </div>
+      <div style={{ flex: 1, backgroundColor: "goldenrod" }}>
+        <h1 style={{ textAlign: "center", color: "white" }}>Section 4</h1>
+      </div>
+    </main>
+  );
 }
 
-export default App
+export default App;
