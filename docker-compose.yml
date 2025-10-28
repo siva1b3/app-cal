@@ -49,3 +49,18 @@ services:
     depends_on:
       - postgres_service
 
+  frontend_service:
+    image: node:latest
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+    container_name: appcal_frontend_container
+    restart: always
+    networks:
+      - appcal_network
+    ports:
+      - "3000:3000"
+      - "5173:5173"
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    depends_on:
+      - postgres_service
