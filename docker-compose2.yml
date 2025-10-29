@@ -1,0 +1,156 @@
+networks:
+  custom_network:
+    driver: bridge
+    name: custom_network
+
+volumes:
+  appcal_postgres_data:
+    name: appcal_postgres_data
+  appcal_pgadmin_data:
+    name: appcal_pgadmin_data
+  rabbitmq_data_full_app_office:
+    name: rabbitmq_data_full_app_office
+
+services:
+  postgres_service:
+    image: postgres:latest
+    container_name: postgres_container
+    restart: always
+    environment:
+      POSTGRES_USER: database_user
+      POSTGRES_PASSWORD: database_password
+      POSTGRES_DB: appcal_db
+    volumes:
+      - postgres_data_full_app_office:/var/lib/postgresql
+      - ./database/postgres/db-init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - custom_network
+    ports:
+      - "5432:5432"
+
+  pgadmin_service:
+    image: dpage/pgadmin4
+    container_name: appcal_pgadmin_container
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+    volumes:
+      - appcal_pgadmin_data:/var/lib/pgadmin
+      - ./database/pgadmin/servers.json:/pgadmin4/servers.json:ro
+    networks:
+      - appcal_network
+    ports:
+      - "8080:80"
+    depends_on:
+      - postgres_service
+
+  rabbitmq-service:
+    image: rabbitmq:4.0.7-management
+    container_name: rabbitmq_container
+    restart: on-failure
+    ports:
+      - "5672:5672" # AMQP protocol port
+      - "15672:15672" # Management UI port
+    environment:
+      RABBITMQ_DEFAULT_USER: rabbitmq_user
+      RABBITMQ_DEFAULT_PASS: rabbitmq_password
+    volumes:
+      - rabbitmq_data_full_app_office:/var/lib/rabbitmq
+    networks:
+      - custom_network
+    depends_on:
+      - postgres_service
+
+  express-image:
+    build:
+      context: ./express_app # This is the build context (the directory where Dockerfile and app code are located)
+      dockerfile: Dockerfile # Specify the Dockerfile (optional if it's named Dockerfile)
+    container_name: express_app_container
+    restart: on-failure
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./express_app:/app
+      - /app/node_modules
+    networks:
+      - custom_network
+    depends_on:
+      - rabbitmq-service
+      - postgres_service
+
+  python-add-image:
+    build:
+      context: ./python_app_add # This is the build context (the directory where Dockerfile and app code are located)
+      dockerfile: Dockerfile # Specify the Dockerfile (optional if it's named Dockerfile)
+    container_name: python_container_add
+    restart: on-failure
+    volumes:
+      - type: bind
+        source: ./python_app_add
+        target: /app
+    stdin_open: true
+    tty: true
+    networks:
+      - custom_network
+    environment:
+      - TIME_SLEEP=1
+    depends_on:
+      - rabbitmq-service
+      - postgres_service
+
+  python-div-image:
+    build:
+      context: ./python_app_div # This is the build context (the directory where Dockerfile and app code are located)
+      dockerfile: Dockerfile # Specify the Dockerfile (optional if it's named Dockerfile)
+    container_name: python_container_div
+    restart: on-failure
+    volumes:
+      - ./python_app_div:/app
+    stdin_open: true
+    tty: true
+    networks:
+      - custom_network
+    environment:
+      - TIME_SLEEP=1
+    depends_on:
+      - rabbitmq-service
+      - postgres_service
+
+  python-mul-image:
+    build:
+      context: ./python_app_mul # This is the build context (the directory where Dockerfile and app code are located)
+      dockerfile: Dockerfile # Specify the Dockerfile (optional if it's named Dockerfile)
+    container_name: python_container_mul
+    restart: on-failure
+    volumes:
+      - ./python_app_mul:/app
+    stdin_open: true
+    tty: true
+    networks:
+      - custom_network
+    environment:
+      - TIME_SLEEP=1
+    depends_on:
+      - rabbitmq-service
+      - postgres_service
+
+  python-sub-image:
+    build:
+      context: ./python_app_sub # This is the build context (the directory where Dockerfile and app code are located)
+      dockerfile: Dockerfile # Specify the Dockerfile (optional if it's named Dockerfile)
+    container_name: python_container_sub
+    restart: on-failure
+    volumes:
+      - ./python_app_sub:/app
+    stdin_open: true
+    tty: true
+    networks:
+      - custom_network
+    environment:
+      - TIME_SLEEP=1
+    depends_on:
+      - rabbitmq-service
+      - postgres_service

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Real-time Calculator with SSE</title>
+  </head>
+  <body>
+    <h2>Real-time Calculator</h2>
+
+    <div>
+      <label for="num1_add">Number 1:</label>
+      <input type="number" id="num1_add" />
+
+      <label for="num2_add">Number 2:</label>
+      <input type="number" id="num2_add" />
+
+      <button onclick="calculate('add')">Add</button>
+
+      <input type="number" id="add_result" />
+      <span>Result: <span id="add_result_status">Waiting...</span></span>
+    </div>
+    <br />
+    <hr />
+    <br />
+
+    <div>
+      <label for="num1_subtract">Number 1:</label>
+      <input type="number" id="num1_subtract" />
+
+      <label for="num2_subtract">Number 2:</label>
+      <input type="number" id="num2_subtract" />
+
+      <button onclick="calculate('subtract')">subtract</button>
+
+      <input type="number" id="subtract_result" />
+      <span>Result: <span id="subtract_result_status">Waiting...</span></span>
+    </div>
+    <br />
+    <hr />
+    <br />
+
+    <div>
+      <label for="num1_multiply">Number 1:</label>
+      <input type="number" id="num1_multiply" />
+
+      <label for="num2_multiply">Number 2:</label>
+      <input type="number" id="num2_multiply" />
+
+      <button onclick="calculate('multiply')">multiply</button>
+
+      <input type="number" id="multiply_result" />
+      <span>Result: <span id="multiply_result_status">Waiting...</span></span>
+    </div>
+    <br />
+    <hr />
+    <br />
+
+    <div>
+      <label for="num1_divide">Number 1:</label>
+      <input type="number" id="num1_divide" />
+
+      <label for="num2_divide">Number 2:</label>
+      <input type="number" id="num2_divide" />
+
+      <button onclick="calculate('divide')">divide</button>
+
+      <input type="number" id="divide_result" />
+      <span>Result: <span id="divide_result_status">Waiting...</span></span>
+    </div>
+    <br />
+    <hr />
+    <br />
+    <script>
+      let clientId = "";
+
+      // const eventSource = new EventSource("http://192.168.49.2:30081/events");
+      const eventSource = new EventSource("http://localhost:3001/events");
+
+      eventSource.addEventListener("clientId", (event) => {
+        clientId = event.data;
+        console.log("Client ID:", clientId);
+        document.getElementById(
+          "output"
+        ).innerHTML = `Connected with ID: ${clientId}`;
+      });
+
+      eventSource.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        console.log("Message received:", data);
+
+        if (data.clientId === clientId) {
+          document.getElementById(`${data.operation}_result`).value =
+            data.result;
+          document.getElementById(
+            `${data.operation}_result_status`
+          ).textContent = "Done ✅";
+        }
+      };
+
+      async function calculate(operation) {
+        const num1 = parseFloat(
+          document.getElementById(`num1_${operation}`).value
+        );
+        const num2 = parseFloat(
+          document.getElementById(`num2_${operation}`).value
+        );
+
+        if (isNaN(num1) || isNaN(num2)) {
+          alert("Please enter valid numbers");
+          return;
+        }
+
+        const data = { clientId, num1, num2, operation };
+
+        try {
+          // const response = await fetch(`http://192.168.49.2:30081/calculate`, {
+            const response = await fetch(`http://localhost:3001/calculate`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          });
+
+          if (response.ok) {
+            document.getElementById(`${operation}_result_status`).textContent =
+              "Processing...";
+          } else {
+            throw new Error("Failed to start calculation");
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          document.getElementById(`${operation}_result_status`).textContent =
+            "Error";
+        }
+      }
+    </script>
+  </body>
+</html>

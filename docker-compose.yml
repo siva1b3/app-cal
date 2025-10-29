@@ -6,6 +6,8 @@ volumes:
     name: appcal_postgres_data
   appcal_pgadmin_data:
     name: appcal_pgadmin_data
+  appcal_rabbitmq_data:
+    name: appcal_rabbitmq_data
 
 networks:
   appcal_network:
@@ -49,3 +51,36 @@ services:
     depends_on:
       - postgres_service
 
+  rabbitmq_service:
+    image: rabbitmq:4.1.4-management
+    container_name: rabbitmq_container
+    restart: on-failure
+    ports:
+      - "5672:5672" # AMQP protocol port
+      - "15672:15672" # Management UI port
+    environment:
+      RABBITMQ_DEFAULT_USER: rabbitmq_user
+      RABBITMQ_DEFAULT_PASS: rabbitmq_password
+    volumes:
+      - appcal_rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - appcal_network
+    depends_on:
+      - postgres_service
+
+  express-image:
+    build:
+      context: ./express_app # This is the build context (the directory where Dockerfile and app code are located)
+      dockerfile: Dockerfile # Specify the Dockerfile (optional if it's named Dockerfile)
+    container_name: express_app_container
+    restart: on-failure
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./express_app:/app
+      - /app/node_modules
+    networks:
+      - appcal_network
+    depends_on:
+      - rabbitmq_service
+      - postgres_service
